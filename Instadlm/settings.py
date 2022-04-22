@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,12 +39,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'followers.apps.FollowersConfig',
+    'posts',
+    'easy_thumbnails',
+    'kombu.transport.django',
 
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -113,7 +118,9 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale'),
+)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
@@ -124,3 +131,44 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Media files
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+MEDIA_URL = '/media/'
+
+# Image size
+DEFAULT_IMAGE_SIZE = (2500, 2500)
+
+THUMBNAIL_NAMER = 'easy_thumbnails.namers.alias'
+THUMBNAIL_HIGH_RESOLUTION = True
+THUMBNAIL_ALIASES = {
+    '': {
+        'small': {'size': (500, 500), 'crop': True},
+        'medium': {'size': (750, 750), 'crop': True},
+        'large': {'size': (1000, 1000), 'crop': True},
+    },
+}
+
+# REST Framework Settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',  # poder autenticarnos por API Key
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # poder autenticarnos por JWT
+        'oauth2_provider.ext.rest_framework.OAuth2Authentication'  # poder autenticarnos por OAuth2
+    )
+}
+
+# Celery settings
+BROKER_URL = 'django://'  # le dice a Celery que se tiene que conectar a Kombu
+
+# Sites
+SITE_ID = 1
+
+# No enviar e-mail de verificacion de cuenta
+ACCOUNT_EMAIL_VERIFICATION = "none"
+
+# JWT
+REST_USE_JWT = True  # al hacer login os devuelvan el token JWT
+
